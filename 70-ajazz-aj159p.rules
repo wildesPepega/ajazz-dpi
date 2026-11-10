@@ -1,0 +1,7 @@
+# Ajazz AJ159P: allow the logged-in user to access the config interface
+# 2.4 GHz receiver
+KERNEL=="hidraw*", ATTRS{idVendor}=="249a", ATTRS{idProduct}=="5c2f", MODE="0660", TAG+="uaccess"
+# USB cable
+KERNEL=="hidraw*", ATTRS{idVendor}=="248a", ATTRS{idProduct}=="5c2e", MODE="0660", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="248a", ATTRS{idProduct}=="5d2e", MODE="0660", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="248a", ATTRS{idProduct}=="5e2e", MODE="0660", TAG+="uaccess"
