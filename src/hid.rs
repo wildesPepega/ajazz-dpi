@@ -125,6 +125,9 @@ impl Device {
     /// Send a request and wait for the reply echoing the command byte.
     /// Returns Err(TimedOut) if the mouse doesn't answer (asleep / out of range).
     pub fn transact(&mut self, req: &Report, timeout: Duration) -> io::Result<Report> {
+        // GUI and tray may both have the device open; every opener sees every
+        // reply, so serialise request/reply pairs across processes.
+        let _lock = Lock::new(self.file.as_raw_fd());
         self.drain()?;
         self.write(req)?;
         let deadline = Instant::now() + timeout;
@@ -149,5 +152,24 @@ impl Device {
                 s => return Err(io::Error::other(format!("Fehlerstatus 0x{s:02x}"))),
             }
         }
+    }
+}
+
+/// Exclusive flock on the hidraw node, released on drop.
+struct Lock(i32);
+
+impl Lock {
+    fn new(fd: i32) -> Lock {
+        // SAFETY: fd is a valid open descriptor for the lifetime of the lock.
+        // Best effort: if flock fails we just proceed unlocked.
+        unsafe { libc::flock(fd, libc::LOCK_EX) };
+        Lock(fd)
+    }
+}
+
+impl Drop for Lock {
+    fn drop(&mut self) {
+        // SAFETY: see Lock::new.
+        unsafe { libc::flock(self.0, libc::LOCK_UN) };
     }
 }

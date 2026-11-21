@@ -1,5 +1,6 @@
 mod hid;
 mod protocol;
+mod tray;
 
 use eframe::egui;
 use protocol::{DeviceInfo, DpiTable, Report, Sensor, RATES, STAGES};
@@ -401,6 +402,10 @@ fn probe() {
 fn main() -> eframe::Result {
     if std::env::args().any(|a| a == "--probe") {
         probe();
+        return Ok(());
+    }
+    if std::env::args().any(|a| a == "--tray") {
+        tray::run();
         return Ok(());
     }
     let opts = eframe::NativeOptions {
