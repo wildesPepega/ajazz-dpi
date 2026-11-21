@@ -14,6 +14,20 @@ driver, no root at runtime (after installing a udev rule).
 
 > The user interface is currently in German.
 
+## Quick install
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/wildesPepega/ajazz-dpi/main/install.sh | bash
+```
+
+This builds from source (needs [Rust](https://rustup.rs) and `git`), installs the
+binary to `~/.local/bin`, the udev rule (asks for your sudo password) and
+enables the tray icon as a systemd user service that starts with your session.
+Running it again updates an existing installation.
+
+Prefer to read the script first? [`install.sh`](install.sh) – or clone the repo
+and run `./install.sh` from the checkout.
+
 ---
 
 ## Contents
@@ -21,6 +35,7 @@ driver, no root at runtime (after installing a udev rule).
 - [Features](#features)
 - [Supported hardware](#supported-hardware)
 - [Requirements](#requirements)
+- [Quick install](#quick-install)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Tray icon & low-battery alert](#tray-icon--low-battery-alert)
@@ -31,6 +46,7 @@ driver, no root at runtime (after installing a udev rule).
 - [How it works](#how-it-works)
 - [Development](#development)
 - [Credits](#credits)
+- [License](#license)
 
 ---
 
@@ -92,6 +108,16 @@ Bluetooth is not supported.
   found via `fc-match` works too; without one, a built-in pixel font is used.
 
 ## Installation
+
+The [quick install](#quick-install) above does all of the following. Options:
+
+```sh
+./install.sh                # build + install everything
+./install.sh --no-service   # without the tray autostart service
+./install.sh --uninstall    # remove binary, service and udev rule
+```
+
+To do it manually instead:
 
 ### 1. udev rule (one-time, needs root)
 
@@ -185,6 +211,8 @@ or restarting the service closes it as well.
 
 ## Updating
 
+Re-run the [quick install](#quick-install) command, or manually:
+
 ```sh
 git pull
 cargo build --release
@@ -193,6 +221,13 @@ systemctl --user restart ajazz-dpi-tray
 ```
 
 ## Uninstalling
+
+```sh
+./install.sh --uninstall
+# or: curl -fsSL https://raw.githubusercontent.com/wildesPepega/ajazz-dpi/main/install.sh | bash -s -- --uninstall
+```
+
+Manually:
 
 ```sh
 systemctl --user disable --now ajazz-dpi-tray
@@ -282,5 +317,9 @@ The protocol is based on reverse-engineering work by:
 
 - [Rockeyxx/aj179-linux](https://github.com/Rockeyxx/aj179-linux) (`docs/PROTOCOL.md`)
 - [Khabarovsk6000/Ajazz-AJ159P-Linux](https://github.com/Khabarovsk6000/Ajazz-AJ159P-Linux)
+
+## License
+
+[MIT](LICENSE)
 
 Not affiliated with Ajazz.
