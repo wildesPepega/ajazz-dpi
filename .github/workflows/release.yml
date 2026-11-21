@@ -15,7 +15,7 @@ jobs:
     env:
       ASSET: ajazz-dpi-x86_64-linux
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Check tag matches Cargo.toml version
         run: |
