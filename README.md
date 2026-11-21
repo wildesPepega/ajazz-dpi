@@ -20,13 +20,13 @@ driver, no root at runtime (after installing a udev rule).
 curl -fsSL https://raw.githubusercontent.com/wildesPepega/ajazz-dpi/main/install.sh | bash
 ```
 
-This builds from source (needs [Rust](https://rustup.rs) and `git`), installs the
-binary to `~/.local/bin`, the udev rule (asks for your sudo password) and
-enables the tray icon as a systemd user service that starts with your session.
-Running it again updates an existing installation.
+This downloads the [latest release](https://github.com/wildesPepega/ajazz-dpi/releases/latest)
+(prebuilt x86_64 binary – no Rust needed), verifies its SHA-256 checksum,
+installs the binary to `~/.local/bin`, the udev rule (asks for your sudo
+password) and enables the tray icon as a systemd user service that starts with
+your session. Running it again updates to the newest release.
 
-Prefer to read the script first? [`install.sh`](install.sh) – or clone the repo
-and run `./install.sh` from the checkout.
+Prefer to read the script first? [`install.sh`](install.sh).
 
 ---
 
@@ -97,7 +97,9 @@ Bluetooth is not supported.
 ## Requirements
 
 - Linux with `hidraw` (any modern kernel)
-- Rust toolchain (edition 2024, i.e. Rust ≥ 1.85) – install via [rustup](https://rustup.rs)
+- Prebuilt release: x86_64 and glibc ≥ 2.35 (Ubuntu 22.04, Debian 12, Fedora 36
+  or newer); `curl` or `wget`, `tar`, `sha256sum`
+- Building from source: Rust ≥ 1.85 (edition 2024) – install via [rustup](https://rustup.rs)
 - Wayland or X11
 - For the tray: a StatusNotifierItem host (KDE Plasma has one built in; GNOME
   needs the *AppIndicator* extension)
@@ -112,12 +114,20 @@ Bluetooth is not supported.
 The [quick install](#quick-install) above does all of the following. Options:
 
 ```sh
-./install.sh                # build + install everything
-./install.sh --no-service   # without the tray autostart service
-./install.sh --uninstall    # remove binary, service and udev rule
+./install.sh                    # install the latest release
+./install.sh --version v0.2.0   # install a specific release
+./install.sh --from-source      # build with cargo instead (checkout or fresh clone)
+./install.sh --no-service       # without the tray autostart service
+./install.sh --uninstall        # remove binary, service and udev rule
 ```
 
-To do it manually instead:
+Options work with the curl one-liner too: `curl -fsSL … | bash -s -- --from-source`.
+
+Alternatively download `ajazz-dpi-x86_64-linux.tar.gz` from the
+[releases page](https://github.com/wildesPepega/ajazz-dpi/releases) – it
+contains the binary, udev rule, service file and the installer.
+
+To build and install manually instead:
 
 ### 1. udev rule (one-time, needs root)
 
@@ -308,6 +318,22 @@ cargo run -- --tray      # run the tray from the source tree
 # Render tray icon previews (PPM) into a directory:
 ICON_DIR=/tmp/icons cargo test dump_icons -- --ignored
 ```
+
+### Releasing
+
+Releases are built by GitHub Actions ([`.github/workflows/release.yml`](.github/workflows/release.yml))
+on Ubuntu 22.04, so the binary runs on any distro with glibc ≥ 2.35.
+
+1. Bump `version` in `Cargo.toml` and run `cargo build` (updates `Cargo.lock`).
+2. Add a `## vX.Y.Z` section to [`CHANGELOG.md`](CHANGELOG.md) – it becomes the release notes.
+3. Commit, then tag and push:
+
+   ```sh
+   git tag vX.Y.Z && git push origin main vX.Y.Z
+   ```
+
+The workflow checks that the tag matches `Cargo.toml`, runs the tests, builds,
+and publishes `ajazz-dpi-x86_64-linux.tar.gz` (+ `.sha256`) as the latest release.
 
 The release profile is size-optimised (`opt-level = "s"`, LTO, stripped).
 

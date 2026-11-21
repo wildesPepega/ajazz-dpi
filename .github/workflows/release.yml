@@ -1,0 +1,60 @@
+# Push a tag `vX.Y.Z` (matching Cargo.toml) to build, test and publish a release.
+# Built on Ubuntu 22.04 so the binary runs on any distro with glibc >= 2.35.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    env:
+      ASSET: ajazz-dpi-x86_64-linux
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check tag matches Cargo.toml version
+        run: |
+          v="v$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)"
+          if [ "$v" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match Cargo.toml version $v"
+            exit 1
+          fi
+
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal && rustup default stable
+
+      - name: Test
+        run: cargo test --release --locked
+
+      - name: Build
+        run: cargo build --release --locked
+
+      - name: Package
+        run: |
+          mkdir -p "dist/$ASSET"
+          cp target/release/ajazz-dpi 70-ajazz-aj159p.rules ajazz-dpi-tray.service \
+             install.sh LICENSE README.md CHANGELOG.md "dist/$ASSET/"
+          tar -C dist -czf "dist/$ASSET.tar.gz" "$ASSET"
+          (cd dist && sha256sum "$ASSET.tar.gz" > "$ASSET.tar.gz.sha256")
+          echo "Required glibc: $(objdump -T target/release/ajazz-dpi | grep -o 'GLIBC_[0-9.]*' | sort -uV | tail -1)"
+
+      - name: Release notes from CHANGELOG.md
+        run: |
+          awk -v tag="$GITHUB_REF_NAME" '
+            /^## / { if (found) exit; if ($2 == tag) { found = 1; next } }
+            found' CHANGELOG.md > notes.md
+          test -s notes.md || { echo "::error::no CHANGELOG.md section for $GITHUB_REF_NAME"; exit 1; }
+          cat notes.md
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/$ASSET.tar.gz" "dist/$ASSET.tar.gz.sha256" \
+            --title "$GITHUB_REF_NAME" --notes-file notes.md --latest

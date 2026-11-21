@@ -400,6 +400,10 @@ fn probe() {
 }
 
 fn main() -> eframe::Result {
+    if std::env::args().any(|a| a == "--version" || a == "-V") {
+        println!("ajazz-dpi {}", env!("CARGO_PKG_VERSION"));
+        return Ok(());
+    }
     if std::env::args().any(|a| a == "--probe") {
         probe();
         return Ok(());

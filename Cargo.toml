@@ -1,6 +1,6 @@
 [package]
 name = "ajazz-dpi"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 license = "MIT"
 description = "DPI, polling rate and battery tray for the Ajazz AJ159P mouse on Linux"
